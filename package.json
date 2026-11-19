@@ -1,0 +1,51 @@
+{
+  "name": "dsh-kronos",
+  "version": "0.1.0",
+  "description": "K-line scenario forecasting for DeepSeek Harness — a seeded, reproducible scenario fan from real history (stationary block bootstrap, zero dependencies, disclosure on every payload), the statistical baseline any neural foundation model must beat, with a rolling OOS self-evaluation harness and an honest head-to-head comparison layer (--via kronos optional backend).",
+  "bin": {
+    "dsh-kronos": "bin/dsh-kronos.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "manifestVersion": 1
+  },
+  "files": [
+    "bin",
+    "scripts/*.py",
+    "skills",
+    "cordis.patch.yml",
+    "SKILL.md",
+    "README.md",
+    "README.zh-CN.md",
+    "ROADMAP.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "python3 tests/test_engine.py && node bin/dsh-kronos.js --help"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "kronos",
+    "scenario-analysis",
+    "time-series",
+    "bootstrap",
+    "monte-carlo",
+    "forecasting",
+    "k-line",
+    "quant"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vicfei/dsh-Kronos.git"
+  },
+  "homepage": "https://github.com/vicfei/dsh-Kronos#readme",
+  "license": "MIT",
+  "author": "vicfei"
+}
