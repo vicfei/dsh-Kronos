@@ -3,8 +3,8 @@
 **A seeded, reproducible scenario fan over future K-lines from real history —
 the statistical baseline that any neural foundation model will have to beat.
 Zero dependencies, determinism by seed, disclosure on every payload.**
-**从真实历史生成可复现的未来 K 线情景扇——任何神经基础模型都必须先打赢的
-统计基线。零依赖、按种子确定性、披露随载荷。**
+
+[English](README.md) | [简体中文](README.zh-CN.md)
 
 [![DeepSeek Harness](https://img.shields.io/badge/DSH-plugin-4E6DD4)](https://github.com/deepseek-ai) [![License: MIT](https://img.shields.io/badge/license-MIT-3da639)](LICENSE) [![Kronos MIT](https://img.shields.io/badge/upstream-Kronos%20MIT-4f46e5)](https://github.com/shiyu-coder/Kronos)
 
@@ -35,6 +35,7 @@ Zero dependencies, determinism by seed, disclosure on every payload.**
 ```bash
 git clone https://github.com/vicfei/dsh-Kronos && cd dsh-kronos
 python3 scripts/scenario.py --data <klines.json> --horizon 30 --paths 1000 --seed 42 --save
+python3 scripts/scenario.py --data klines.json --lang zh ...   # Chinese fallback
 ```
 
 Real smoke (binance BTC/USDT 365d, 2026-11-17, seed 42): 30-step fan with
