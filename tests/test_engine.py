@@ -94,5 +94,22 @@ env = {"method": sc.t("method"), "seed": 42, "n_paths": 200, "block_len": 5,
 check("envelope carries the reproducibility tuple",
       env["seed"] == 42 and env["window"]["bars"] == 365 and env["conditioning"] == "none")
 
+# 10. backends + comparison (V2)
+import backends, compare as cmp_mod
+bt = backends.bootstrap(bars, 10, 200, 42)
+gz = backends.gaussian(bars, 10, 200, 42)
+check("backends return n terminals", len(bt) == 200 and len(gz) == 200)
+check("backend determinism", backends.bootstrap(bars, 10, 200, 42) == bt)
+check("bootstrap vs gaussian differ", sorted(bt) != sorted(gz))
+try:
+    backends.kronos(bars, 10, 2, 42)
+    check("kronos unavailable raises honestly", False)
+except backends.BackendUnavailable as e:
+    check("kronos unavailable raises honestly", "torch" in str(e))
+rep, rows = cmp_mod.compare(bars, 10, 200, 42, 4, 200, ["bootstrap", "gaussian"])
+check("compare has both sides", set(rep["results"]) == {"bootstrap", "gaussian"})
+v = rep["verdict"][0]
+check("verdict names winner and significance", ("BETTER" in v or "WORSE" in v) and "significant" in v)
+
 print("result:", "GREEN" if not FAILS else "RED (%d)" % len(FAILS))
 sys.exit(1 if FAILS else 0)
