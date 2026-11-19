@@ -111,5 +111,29 @@ check("compare has both sides", set(rep["results"]) == {"bootstrap", "gaussian"}
 v = rep["verdict"][0]
 check("verdict names winner and significance", ("BETTER" in v or "WORSE" in v) and "significant" in v)
 
+# 11. V3: conditioning, joint, objective
+pool, desc = sc.allowed_starts([0.01 * ((i % 5) - 2) / 50 for i in range(200)])
+check("vol pool nonempty with desc", pool is not None and "pool" in desc)
+try:
+    sc.allowed_starts([0.001] * 30)
+    tiny = True
+except SystemExit:
+    tiny = False
+# same-vol series keeps everything in band → pool large; zero-variance is the unavailable case
+zpool, zdesc = sc.allowed_starts([0.0] * 50)
+check("zero-vol conditioning unavailable", zpool is None and "unavailable" in zdesc)
+cond_out = sc.bootstrap_scenarios(bars, 10, 200, 5, 42, condition="vol")
+check("conditioned run carries desc", "vol-regime" in cond_out.get("_conditioning", ""))
+two = {"A": bars, "B": [[r[0], r[1] * 2, r[2] * 2, r[3] * 2, r[4] * 2, r[5]] for r in bars]}
+j = sc.joint_scenarios(two, 10, 200, 5, 42)
+check("joint has both symbols + corr", set(j["per_symbol"]) == {"A", "B"} and abs(j["sim_terminal_corr"]["A|B"] - 1.0) < 1e-6)
+import tempfile, os
+with tempfile.TemporaryDirectory() as td:
+    op = os.path.join(td, "obj.json")
+    sc._write_objective(op, j["per_symbol"]["A"], "A", 10)
+    obj = json.load(open(op))
+    check("objective file schema", obj["symbol"] == "A" and 0 <= obj["P_above_current"] <= 1
+          and obj["fan_width_80_rel"] > 0 and "not point predictions" in obj["note"])
+
 print("result:", "GREEN" if not FAILS else "RED (%d)" % len(FAILS))
 sys.exit(1 if FAILS else 0)
