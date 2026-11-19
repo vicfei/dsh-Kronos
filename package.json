@@ -1,7 +1,7 @@
 {
   "name": "dsh-kronos",
-  "version": "0.1.0",
-  "description": "K-line scenario forecasting for DeepSeek Harness — a seeded, reproducible scenario fan from real history (stationary block bootstrap, zero dependencies, disclosure on every payload), the statistical baseline any neural foundation model must beat, with a rolling OOS self-evaluation harness and an honest head-to-head comparison layer (--via kronos optional backend).",
+  "version": "0.3.0",
+  "description": "K-line scenario forecasting for DeepSeek Harness \u2014 a seeded, reproducible scenario fan from real history (stationary block bootstrap, zero dependencies, disclosure on every payload), the statistical baseline any neural foundation model must beat, with a rolling OOS self-evaluation harness and an honest head-to-head comparison layer (--via kronos optional backend).",
   "bin": {
     "dsh-kronos": "bin/dsh-kronos.js"
   },
@@ -19,6 +19,7 @@
     "SKILL.md",
     "README.md",
     "README.zh-CN.md",
+    "CHANGELOG.md",
     "ROADMAP.md",
     "LICENSE"
   ],

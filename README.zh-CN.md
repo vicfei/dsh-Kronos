@@ -25,6 +25,16 @@
 | 运行处 | Python/GPU 实验室 | **DSH 会话内**——agent 循环中直接拿情景扇 |
 | 角色 | 学习式条件结构 | **任何学习模型都必须打赢的锚**——权重/网络不在时的诚实兜底 |
 
+## 安装
+
+```bash
+npm i -g dsh-kronos             # 或：dsh plugin add dsh-kronos
+dsh-kronos --data <klines.json> --horizon 30 --paths 1000 --seed 42 --save
+```
+
+需要 PATH 上有 `python3`（纯标准库，无 pip 安装）。源码方式：clone 后直接
+`python3 scripts/scenario.py`。
+
 ## 快速开始
 
 ```bash
@@ -40,9 +50,12 @@ P10/P50/P90 = **53.1k / 62.6k / 73.2k**，P(高于现价) = **38.9%**——市�
 
 ## 状态与路线图
 
-v0 基线引擎已在真实数据冒烟。见 [ROADMAP](ROADMAP.md)：V1 硬化+自评
-harness（滚动 OOS 给基线打分）；**V2 对拍主轴**（`--via kronos` 可选后端 +
-CRPS/覆盖率对拍）；V3 联合情景与家族联动；V4 SCENARIO-REPORT 格式。
+v0.3.0——V1 硬化、V2 对拍主轴、V3 深度全部交付；31 项 hermetic 测试 + CI 绿。
+
+**盒内**：带可复现信封的情景扇；自评 harness（滚动 OOS 覆盖率/CRPS）；
+对拍层（compare.py——bootstrap vs gaussian vs 可选 `--via kronos`，神经须显
+著赢基线才算数）；保联动联合情景；波动 regime 条件化（池披露）；家族优化
+器目标接口。见 [ROADMAP](ROADMAP.md)——V4：SCENARIO-REPORT 格式。
 
 ## 许可与免责
 

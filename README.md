@@ -30,6 +30,16 @@ Zero dependencies, determinism by seed, disclosure on every payload.**
 | Where | Python/GPU lab | **DSH in-session** — agents get scenario fans in the loop |
 | Role | learned conditional structure | **the anchor any learned model must beat** — and the honest fallback when weights/network aren't there |
 
+## Install
+
+```bash
+npm i -g dsh-kronos             # or: dsh plugin add dsh-kronos
+dsh-kronos --data <klines.json> --horizon 30 --paths 1000 --seed 42 --save
+```
+
+Requires `python3` on PATH (stdlib only, no pip installs). From source: clone
+and call `python3 scripts/scenario.py` directly.
+
 ## Quick start
 
 ```bash
@@ -45,9 +55,17 @@ bit-exact with the same seed.
 
 ## Status & roadmap
 
-v0 baseline engine smoke-tested on live data. [ROADMAP](ROADMAP.md): M1 the real
-model (`--via kronos`, HF-mirror weights, CPU inference) + the head-to-head
-benchmark vs this baseline.
+v0.3.0 — V1 hardening, V2 comparison flagship, V3 depth all shipped; 31
+hermetic checks + CI green.
+
+**In the box**: scenario fans with a reproducibility envelope on every
+payload; the **self-evaluation harness** (rolling OOS coverage/CRPS of the
+fan itself); the **head-to-head layer** (`compare.py` — bootstrap vs gaussian
+vs optional `--via kronos` over upstream HF weights; neural only counts when
+it significantly beats bootstrap); joint multi-symbol scenarios preserving
+realized co-movement; vol-regime conditioning (pool disclosed); optimizer
+objective interface for family consumption. See [ROADMAP](ROADMAP.md) for V4
+(SCENARIO-REPORT spec, WeKnora-backed history).
 
 ## License & disclaimer
 
