@@ -31,6 +31,7 @@ STR = {
                       "and must significantly beat this baseline to count",
         "fan_title": "{symbol} · {horizon}-step scenario fan",
         "card_footer": "red dashed = current {last:.2f} · {horizon} steps · bootstrap scenario fan",
+        "envelope_line": "seed {seed} · {paths} paths · block {block} · window {bars} bars — reproduce with the same seed",
         "saved": "→ {path}",
         "method": "stationary block bootstrap on log-returns",
     },
@@ -39,6 +40,7 @@ STR = {
                       "神经后端（上游 Kronos，HF 权重）为可选（--via kronos），接入后须显著赢过本基线才算数",
         "fan_title": "{symbol} · {horizon} 步情景扇",
         "card_footer": "红虚线 = 现价 {last:.2f} · {horizon} 步 · bootstrap 情景扇",
+        "envelope_line": "种子 {seed} · {paths} 条路径 · 块长 {block} · 窗口 {bars} 根——同种子可复现",
         "saved": "→ {path}",
         "method": "对数收益率的平稳块 bootstrap",
     },
@@ -47,6 +49,39 @@ STR = {
 
 def t(key, **kw):
     return STR[LANG].get(key, key).format(**kw) if kw else STR[LANG].get(key, key)
+
+
+def coverage_gaps(bars, threshold=10):
+    """calendar-day jumps above threshold, reported as possible data holes"""
+    gaps = []
+    for i in range(1, len(bars)):
+        try:
+            a = dt.date.fromisoformat(str(bars[i - 1][0])[:10])
+            b = dt.date.fromisoformat(str(bars[i][0])[:10])
+        except ValueError:
+            continue
+        if (b - a).days > threshold:
+            gaps.append({"from": str(bars[i - 1][0])[:10], "to": str(bars[i][0])[:10],
+                         "calendar_days": (b - a).days})
+    return gaps
+
+
+MIN_BARS = 60
+MIN_PATHS = 100
+
+
+def check_preconditions(bars, horizon, n_paths):
+    """honest pre-flight: state the reason, never run on degenerate inputs"""
+    problems = []
+    if len(bars) < MIN_BARS:
+        problems.append(f"insufficient history: {len(bars)} bars, need >= {MIN_BARS}")
+    if any(not math.isfinite(b[2]) or b[2] <= 0 for b in bars):
+        problems.append("non-finite or non-positive close in input bars")
+    if horizon < 1:
+        problems.append(f"horizon must be >= 1, got {horizon}")
+    if n_paths < MIN_PATHS:
+        problems.append(f"paths must be >= {MIN_PATHS} for stable quantiles, got {n_paths}")
+    return problems
 
 
 def bootstrap_scenarios(bars, horizon, n_paths, block_len, seed):
@@ -77,7 +112,7 @@ def bootstrap_scenarios(bars, horizon, n_paths, block_len, seed):
             "_paths": paths}
 
 
-def fan_svg(paths, last, horizon, title, w=720, h=240):
+def fan_svg(paths, last, horizon, title, w=720, h=240, envelope=None):
     import statistics
     steps = list(range(horizon + 1))
     lo = min(min(p) for p in paths) * 0.995
@@ -95,11 +130,14 @@ def fan_svg(paths, last, horizon, title, w=720, h=240):
         bands.append(f'<polygon points="{up} {dn}" fill="#2456c4" opacity="{0.10 if band == 0.10 else 0.18}"/>')
     med = " ".join(f"{X(i):.1f},{Y(statistics.median([p[i] for p in paths])):.1f}" for i in steps)
     footer = t("card_footer", last=last, horizon=horizon)
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" font-family="monospace">'
+    env_line = t("envelope_line", seed=envelope["seed"], paths=len(paths),
+                 block=envelope["block_len"], bars=envelope["window"]["bars"]) if envelope else ""
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h+16}" font-family="monospace">'
             f'<text x="10" y="14" font-size="12">{title} · median with P25–P75 / P10–P90 fans</text>'
             + "".join(bands) + f'<polyline points="{med}" fill="none" stroke="#1a3a8a" stroke-width="1.6"/>'
             + f'<line x1="40" y1="{Y(last):.1f}" x2="{w-20}" y2="{Y(last):.1f}" stroke="#c23531" stroke-dasharray="4,3"/>'
-            + f'<text x="10" y="{h-6}" font-size="10" fill="#567">{footer}</text></svg>')
+            + f'<text x="10" y="{h-6}" font-size="10" fill="#567">{footer}</text>'
+            + f'<text x="10" y="{h+10}" font-size="10" fill="#567">{env_line}</text></svg>')
 
 
 def main():
@@ -117,11 +155,24 @@ def main():
     LANG = args.lang
     data = json.load(open(args.data))
     symbol, bars = next(iter(data.items()))
+    problems = check_preconditions(bars, args.horizon, args.paths)
+    if problems:
+        sys.exit("refused honestly — " + "; ".join(problems))
     out = bootstrap_scenarios(bars, args.horizon, args.paths, args.block_len, args.seed)
     paths = out.pop("_paths")
-    out.update({"symbol": symbol, "method": t("method"),
+    gaps = coverage_gaps(bars)
+    out.update({"symbol": symbol,
                 "disclosure": t("disclosure"),
-                "fetched_at": dt.datetime.now().isoformat(timespec="seconds")})
+                "meta": {"method": t("method"), "seed": args.seed, "n_paths": args.paths,
+                         "block_len": args.block_len,
+                         "window": {"bars": len(bars), "from": str(bars[0][0])[:10],
+                                    "to": str(bars[-1][0])[:10]},
+                         "conditioning": "none",
+                         "generated_at": dt.datetime.now().isoformat(timespec="seconds")},
+                "source": {"origin": "user-provided klines JSON", "symbol": symbol,
+                           "bars": len(bars),
+                           "date_range": [str(bars[0][0])[:10], str(bars[-1][0])[:10]],
+                           "coverage_gaps": gaps}})
     print(json.dumps(out, ensure_ascii=False, indent=1, default=str))
     if args.save:
         import os
@@ -129,7 +180,7 @@ def main():
         title = t("fan_title", symbol=symbol, horizon=args.horizon)
         html = ("<!doctype html><meta charset=utf-8><body style='font-family:monospace;max-width:760px;margin:20px auto'>"
                 f"<h3>{title}</h3>"
-                + fan_svg(paths, out["last_close"], args.horizon, symbol)
+                + fan_svg(paths, out["last_close"], args.horizon, symbol, envelope=out["meta"])
                 + "<pre>" + json.dumps({k: v for k, v in out.items() if k != "disclosure"}, ensure_ascii=False, indent=1) + "</pre>"
                 + f"<p style='color:#666;font-size:12px'>{out['disclosure']}</p></body>")
         path = f"scenarios/{symbol.replace('/', '_')}-h{args.horizon}-s{args.seed}.html"
