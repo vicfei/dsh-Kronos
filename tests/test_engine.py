@@ -48,10 +48,10 @@ check("insufficient history refused", any("insufficient" in p for p in probs))
 probs = sc.check_preconditions(bars, 30, 50)
 check("too few paths refused", any("paths" in p for p in probs))
 
-# 4. coverage gaps
+# 4. coverage gaps (synthetic bars are contiguous daily → day 99 → day 112 = 13 days)
 gappy = bars[:100] + bars[112:]
 g = sc.coverage_gaps(gappy)
-check("12-day gap detected", len(g) == 1 and g[0]["calendar_days"] == 12)
+check("13-day gap detected", len(g) == 1 and g[0]["calendar_days"] == 13)
 check("no gaps on contiguous", sc.coverage_gaps(bars) == [])
 
 # 5. CRPS math: point mass at y = 0; N(0,1) analytic ≈ 0.2337
@@ -76,7 +76,8 @@ except SystemExit:
 for lang in ("en", "zh"):
     sc.LANG = lang
     check("disclosure exists in %s" % lang, len(sc.t("disclosure")) > 20)
-    check("envelope line in %s" % lang, "seed" in sc.t("envelope_line", seed=1, paths=2, block=3, bars=4))
+    s = sc.t("envelope_line", seed=1, paths=2, block=3, bars=4)
+    check("envelope line in %s" % lang, ("seed" in s or "种子" in s) and "4" in s)
 sc.LANG = "en"
 
 # 8. fan svg carries envelope line
