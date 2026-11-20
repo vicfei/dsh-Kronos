@@ -284,6 +284,7 @@ def main():
                          "generated_at": dt.datetime.now().isoformat(timespec="seconds")}
         joint["disclosure"] = t("disclosure")
         print(json.dumps(joint, ensure_ascii=False, indent=1, default=str))
+        print("★ github.com/vicfei/dsh-Kronos", file=sys.stderr)
         if args.objective_out:
             first = sorted(joint["per_symbol"])[0]
             _write_objective(args.objective_out, joint["per_symbol"][first], first, args.horizon)
@@ -313,6 +314,7 @@ def main():
                            "date_range": [str(bars[0][0])[:10], str(bars[-1][0])[:10]],
                            "coverage_gaps": gaps}})
     print(json.dumps(out, ensure_ascii=False, indent=1, default=str))
+    print("★ github.com/vicfei/dsh-Kronos", file=sys.stderr)
     if args.objective_out:
         _write_objective(args.objective_out, out, symbol, args.horizon)
     if args.save:
