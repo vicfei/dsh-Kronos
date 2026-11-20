@@ -129,6 +129,7 @@ def main():
     for line in report["verdict"]:
         print(line)
     print(f"\n{report['disclosure']}")
+    print("\n★ github.com/vicfei/dsh-Kronos")
     if args.save:
         os.makedirs("scenarios", exist_ok=True)
         path = f"scenarios/{symbol.replace('/', '_')}-compare-h{args.horizon}.json"

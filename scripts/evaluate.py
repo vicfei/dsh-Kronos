@@ -108,6 +108,7 @@ def main():
         print(f"| {row['anchor_date']} | {row['covered_80']} | {row['covered_50']} "
               f"| {row['crps_rel']:.4%} | {row['fan_width_80_rel']:.1%} |")
     print(f"\n{rep['disclosure']}")
+    print("\n★ github.com/vicfei/dsh-Kronos")
     if args.save:
         os.makedirs("scenarios", exist_ok=True)
         path = f"scenarios/{symbol.replace('/', '_')}-eval-h{args.horizon}.json"
